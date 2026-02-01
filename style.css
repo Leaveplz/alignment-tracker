@@ -44,4 +44,22 @@ body {
   font-size: 14px;
   padding: 6px;
   cursor: pointer;
+  transition: transform 0.1s ease, background 0.1s ease;
 }
+
+#controls button:active {
+  transform: scale(0.92);
+  background: #ddd;
+}
+
+/* анимация маркера */
+@keyframes nudge {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(var(--dx), var(--dy)); }
+  100% { transform: translate(0, 0); }
+}
+
+#marker.animate {
+  animation: nudge 0.15s ease;
+}
+
