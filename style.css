@@ -6,7 +6,7 @@ body {
 
 #container {
   position: relative;
-  width: 1400px; /* ×3 */
+  width: 1050px; /* -25% */
   margin: 0 auto;
 }
 
@@ -21,7 +21,7 @@ body {
 }
 
 .grid-point {
-  fill: rgba(0, 0, 0, 0.15);
+  fill: rgba(0, 0, 0, 0.18);
 }
 
 #marker {
@@ -29,4 +29,19 @@ body {
   stroke: black;
   stroke-width: 2;
   pointer-events: none;
+}
+
+/* кнопки */
+#controls {
+  margin-top: 20px;
+  display: inline-grid;
+  grid-template-columns: 80px 80px 80px;
+  grid-template-rows: 50px 50px 50px;
+  gap: 6px;
+}
+
+#controls button {
+  font-size: 14px;
+  padding: 6px;
+  cursor: pointer;
 }
