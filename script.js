@@ -1,10 +1,11 @@
 const svg = document.getElementById("overlay");
 const gridGroup = document.getElementById("grid");
 const marker = document.getElementById("marker");
+const buttons = document.querySelectorAll("#controls button");
 
 const CENTER = { x: 500, y: 500 };
-const INNER_RADIUS = 320; // радиус внутреннего круга
-const STEP = 30; // расстояние между допустимыми точками
+const INNER_RADIUS = 320;
+const STEP = 15; // в 2 раза плотнее
 
 let gridPoints = [];
 
@@ -20,24 +21,19 @@ for (let x = CENTER.x - INNER_RADIUS; x <= CENTER.x + INNER_RADIUS; x += STEP) {
       const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       dot.setAttribute("cx", x);
       dot.setAttribute("cy", y);
-      dot.setAttribute("r", 3);
+      dot.setAttribute("r", 2.5);
       dot.classList.add("grid-point");
       gridGroup.appendChild(dot);
     }
   }
 }
 
-// загрузка сохранённого положения
-const saved = JSON.parse(localStorage.getItem("alignment"));
-if (saved) {
-  marker.setAttribute("cx", saved.x);
-  marker.setAttribute("cy", saved.y);
-} else {
-  marker.setAttribute("cx", CENTER.x);
-  marker.setAttribute("cy", CENTER.y);
-}
+// текущее положение
+let current = JSON.parse(localStorage.getItem("alignment")) || CENTER;
+marker.setAttribute("cx", current.x);
+marker.setAttribute("cy", current.y);
 
-// поиск ближайшей точки
+// найти ближайшую разрешённую точку
 function findNearest(x, y) {
   let best = gridPoints[0];
   let bestDist = Infinity;
@@ -52,16 +48,37 @@ function findNearest(x, y) {
   return best;
 }
 
+// клик по кругу
 svg.addEventListener("click", (e) => {
   const rect = svg.getBoundingClientRect();
 
   const x = ((e.clientX - rect.left) / rect.width) * 1000;
   const y = ((e.clientY - rect.top) / rect.height) * 1000;
 
-  const nearest = findNearest(x, y);
-
-  marker.setAttribute("cx", nearest.x);
-  marker.setAttribute("cy", nearest.y);
-
-  localStorage.setItem("alignment", JSON.stringify(nearest));
+  current = findNearest(x, y);
+  updateMarker();
 });
+
+// кнопки направления
+buttons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    let dx = 0, dy = 0;
+
+    switch (btn.dataset.dir) {
+      case "up": dy = -STEP; break;    // добро
+      case "down": dy = STEP; break;   // зло
+      case "left": dx = -STEP; break;  // закон
+      case "right": dx = STEP; break;  // хаос
+    }
+
+    const target = findNearest(current.x + dx, current.y + dy);
+    current = target;
+    updateMarker();
+  });
+});
+
+function updateMarker() {
+  marker.setAttribute("cx", current.x);
+  marker.setAttribute("cy", current.y);
+  localStorage.setItem("alignment", JSON.stringify(current));
+}
