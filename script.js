@@ -3,9 +3,10 @@ const gridGroup = document.getElementById("grid");
 const marker = document.getElementById("marker");
 const buttons = document.querySelectorAll("#controls button");
 
-const CENTER = { x: 500, y: 500 };
-const INNER_RADIUS = 320;
-const STEP = 15; // в 2 раза плотнее
+// сдвинутый центр и расширенный круг
+const CENTER = { x: 500, y: 425 };
+const INNER_RADIUS = 370;
+const STEP = 15;
 
 let gridPoints = [];
 
@@ -30,10 +31,9 @@ for (let x = CENTER.x - INNER_RADIUS; x <= CENTER.x + INNER_RADIUS; x += STEP) {
 
 // текущее положение
 let current = JSON.parse(localStorage.getItem("alignment")) || CENTER;
-marker.setAttribute("cx", current.x);
-marker.setAttribute("cy", current.y);
+updateMarker(false);
 
-// найти ближайшую разрешённую точку
+// поиск ближайшей точки
 function findNearest(x, y) {
   let best = gridPoints[0];
   let bestDist = Infinity;
@@ -48,37 +48,43 @@ function findNearest(x, y) {
   return best;
 }
 
-// клик по кругу
-svg.addEventListener("click", (e) => {
-  const rect = svg.getBoundingClientRect();
-
-  const x = ((e.clientX - rect.left) / rect.width) * 1000;
-  const y = ((e.clientY - rect.top) / rect.height) * 1000;
-
-  current = findNearest(x, y);
-  updateMarker();
-});
-
-// кнопки направления
+// кнопки
 buttons.forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation(); // на всякий случай
+
     let dx = 0, dy = 0;
 
     switch (btn.dataset.dir) {
-      case "up": dy = -STEP; break;    // добро
-      case "down": dy = STEP; break;   // зло
-      case "left": dx = -STEP; break;  // закон
-      case "right": dx = STEP; break;  // хаос
+      case "up": dy = -STEP; break;    // к добру
+      case "down": dy = STEP; break;   // к злу
+      case "left": dx = -STEP; break;  // к закону
+      case "right": dx = STEP; break;  // к хаосу
     }
 
     const target = findNearest(current.x + dx, current.y + dy);
     current = target;
+
+    animateMarker(dx, dy);
     updateMarker();
   });
 });
 
-function updateMarker() {
+function updateMarker(save = true) {
   marker.setAttribute("cx", current.x);
   marker.setAttribute("cy", current.y);
-  localStorage.setItem("alignment", JSON.stringify(current));
+
+  if (save) {
+    localStorage.setItem("alignment", JSON.stringify(current));
+  }
+}
+
+// визуальный «толчок»
+function animateMarker(dx, dy) {
+  marker.style.setProperty("--dx", `${dx * 0.3}px`);
+  marker.style.setProperty("--dy", `${dy * 0.3}px`);
+
+  marker.classList.remove("animate");
+  void marker.offsetWidth; // перезапуск анимации
+  marker.classList.add("animate");
 }
